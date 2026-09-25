@@ -9,7 +9,7 @@
 <title>Patient Voices Library: project timeline</title>
 <style>
   :root {
-    --label-w: 360px;
+    --label-w: 420px;
     --axis-h: 40px;
     --ink: #2D1B42;
     --muted: #6F6880;
@@ -263,10 +263,13 @@
     background: var(--tag-bg); color: var(--muted);
     white-space: nowrap;
   }
-  .task-due { display: none; flex: none; margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .task-due { display: inline; flex: none; margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
   .task-due.late, .task-title .late { color: var(--alert); }
   .row.task.closed .task-title { text-decoration: line-through; color: var(--muted); }
   .row.task.closed .tag { opacity: 0.7; }
+  .tag.active { background: var(--band); color: var(--ink); font-weight: 600; }
+  .phase-name .tag { margin-left: 10px; vertical-align: 2px; }
+  .row.task.active .dot, .row.task.active .bar { box-shadow: 0 0 0 4px var(--band); }
   .bar {
     position: absolute; top: 50%; height: 10px; margin-top: -5px;
     background: var(--bar); border-radius: 5px;
@@ -308,7 +311,6 @@
     .gridlines, .overlay, .track, .row.axis, .row.lane { display: none; }
     .row { grid-template-columns: 1fr; }
     .phase-btn { grid-template-columns: 18px minmax(0, 1fr) 72px 46px; }
-    .task-due { display: inline; }
     .row.task .label { padding-right: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -414,8 +416,12 @@ const RULES = {
   // Client-facing titles for tasks whose Productive title carries an internal note.
   titleOverrides: {
     32: "Launch Patient Voices Library",
-    113: "Admin tools, taxonomy, transcription and tagging; story-user accounts, directory and request-to-contact"
+    113: "Admin tools, taxonomy, transcription and tagging; story-user accounts, directory and request-to-contact",
+    106: "Improvements from 4Site QA: UX QA window 2: Directory, Request-to-Contact, Admin",
+    134: "GitHub support for the development team"
   },
+  // Words removed from every task label (vendor names the client does not need to see).
+  stripFromTitles: [/\bengine9\b/gi],
   waitingSuffix: " \u2014 waiting for client"
 };
 
@@ -444,7 +450,7 @@ const TASKS = [
   {"id": 73, "list": "Development", "title": "engine9 collaboration as needed", "status": "Closed", "start": null, "due": "2026-09-25"},
   {"id": 74, "list": "Development", "title": "engine9 collaboration as needed", "status": "Closed", "start": null, "due": "2026-09-17"},
   {"id": 90, "list": "Development", "title": "Setup Analytics", "status": "Open", "start": null, "due": "2026-10-09"},
-  {"id": 92, "list": "Development", "title": "Storyteller capture build: recording, upload, typed and audio-only, device matrix", "status": "Open", "start": null, "due": "2026-10-09"},
+  {"id": 92, "list": "Development", "title": "Storyteller capture build: recording, upload, typed and audio-only, device matrix", "status": "In Progress", "start": null, "due": "2026-10-09"},
   {"id": 93, "list": "Development", "title": "Infrastructure, staging, design system", "status": "Open", "start": null, "due": "2026-09-25"},
   {"id": 113, "list": "Development", "title": "Admin tools, taxonomy, transcription and tagging; story-user accounts, the directory and request-to-contact. Columbus Day is the 12th", "status": "Open", "start": null, "due": "2026-10-23"},
   {"id": 31, "list": "Launch", "title": "Ownership and Handoff: Cloudflare and AWS", "status": "Open", "start": null, "due": "2026-11-02"},
@@ -491,8 +497,8 @@ const TASKS = [
   {"id": 88, "list": "Project Management", "title": "CRM: MailChimp", "status": "Closed", "start": null, "due": "2026-09-17"},
   {"id": 89, "list": "Project Management", "title": "Refine intake questionnaire for patient voices", "status": "Closed", "start": null, "due": "2026-09-16"},
   {"id": 94, "list": "QA", "title": "UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-10-09"},
-  {"id": 95, "list": "QA", "title": "4Site Strategy QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-09-28"},
-  {"id": 96, "list": "QA", "title": "4Site Dev QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-09-28"},
+  {"id": 95, "list": "QA", "title": "4Site Strategy QA: UX QA window 1: The Storyteller", "status": "QA", "start": null, "due": "2026-09-28"},
+  {"id": 96, "list": "QA", "title": "4Site Dev QA: UX QA window 1: The Storyteller", "status": "QA", "start": null, "due": "2026-09-28"},
   {"id": 97, "list": "QA", "title": "engine9 Improvements from 4Site QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-09-29"},
   {"id": 98, "list": "QA", "title": "Check in meeting 1: UX Review: The Storyteller", "status": "Open", "start": null, "due": "2026-10-07"},
   {"id": 99, "list": "QA", "title": "Check in meeting 1: UX Review: The Storyteller", "status": "Open", "start": null, "due": "2026-10-07"},
@@ -543,7 +549,7 @@ const TASKS = [
   {"id": 135, "list": "Development", "title": "Create DLIU Cloudflare account", "status": "Closed", "start": null, "due": "2026-09-23"},
   {"id": 128, "list": "Project Management", "title": "DLIU kickoff follow ups", "status": "Closed", "start": null, "due": "2026-09-25"},
   {"id": 129, "list": "Project Management", "title": "DLIU master conditions list", "status": "Closed", "start": null, "due": "2026-09-23"},
-  {"id": 130, "list": "Project Management", "title": "Schedule check in meetings", "status": "Open", "start": null, "due": "2026-09-22"},
+  {"id": 130, "list": "Project Management", "title": "Schedule check in meetings", "status": "Waiting for client", "start": null, "due": "2026-09-22"},
   {"id": 131, "list": "Project Management", "title": "Fonts", "status": "Closed", "start": null, "due": "2026-09-25"},
   {"id": 132, "list": "Project Management", "title": "DLIU testing plan", "status": "Open", "start": null, "due": "2026-10-05"},
   {"id": 133, "list": "Project Management", "title": "DLIU.org soft launch", "status": "Closed", "start": null, "due": "2026-09-24"}
@@ -591,6 +597,15 @@ function phaseFor(listName) {
 }
 function isClosed(status) { return /^closed$/i.test(status); }
 function isWaiting(status) { return /waiting/i.test(status); }
+function isActive(status) { return /in progress|^qa$/i.test(status); }
+function statusLabel(status) { return /^qa$/i.test(status) ? "In QA" : /in progress/i.test(status) ? "In progress" : status; }
+function cleanTitle(title) {
+  let t = title;
+  for (const re of RULES.stripFromTitles) t = t.replace(re, "");
+  t = t.replace(/\s{2,}/g, " ").replace(/\s+([:,])/g, "$1").trim();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
 function isKeyDateTask(title) {
   const t = title.toLowerCase();
   return KEY_DATES.some(k => k.match ? t.startsWith(k.match.toLowerCase()) : t === k.n.toLowerCase());
@@ -602,9 +617,10 @@ function buildPhases() {
   for (const raw of TASKS) {
     if (!raw.due) continue;                       // undated work cannot be placed on a timeline
     if (isExcludedList(raw.list)) continue;
-    const title = RULES.titleOverrides[raw.id] || raw.title;
+    let title = RULES.titleOverrides[raw.id] || raw.title;
     if (RULES.hideTasks.some(re => re.test(title))) continue;
     if (isKeyDateTask(title)) continue;           // shown in Key dates instead
+    title = cleanTitle(title);
     const phase = phaseFor(raw.list);
     const key = `${phase}|${title.toLowerCase()}|${raw.due}`;
     const existing = seen.get(key);
@@ -743,7 +759,8 @@ function renderChart(phases, today) {
     const done = phase.closed === phase.tasks.length;
     const btn = el("button", { type: "button", class: "phase-btn", "aria-expanded": String(open), "aria-controls": `tasks-${slug(phase.name)}` },
       el("span", { class: "chev", "aria-hidden": "true" }),
-      el("span", { class: "phase-name" }, phase.name),
+      el("span", { class: "phase-name" }, phase.name,
+        visible.some(t => !isClosed(t.status) && isActive(t.status)) ? el("span", { class: "tag active" }, "In progress") : null),
       el("span", { class: "progress", role: "img", "aria-label": `${phase.closed} of ${phase.tasks.length} tasks closed` },
         el("span", { style: `width:${phase.tasks.length ? (phase.closed / phase.tasks.length * 100) : 0}%` })),
       el("span", { class: "count num" }, `${phase.closed}/${phase.tasks.length}`));
@@ -772,14 +789,14 @@ function renderChart(phases, today) {
 }
 
 function taskRow(t, range, today) {
-  const closed = isClosed(t.status), waiting = isWaiting(t.status);
+  const closed = isClosed(t.status), waiting = isWaiting(t.status), active = !closed && isActive(t.status);
   const due = parseDate(t.due), start = parseDate(t.start);
   const late = !closed && due < today;
   const title = t.title + (waiting ? RULES.waitingSuffix : "");
-  const tip = `${title}\n${start ? fmt.short(start) + " to " : "Due "}${fmt.weekday(due)}${closed ? "\nClosed" : ""}`;
-  const row = el("div", { class: `row task${closed ? " closed" : ""}${waiting ? " waiting" : ""}` });
+  const tip = `${title}\n${start ? fmt.short(start) + " to " : "Due "}${fmt.weekday(due)}${closed ? "\nClosed" : active ? "\n" + statusLabel(t.status) : ""}`;
+  const row = el("div", { class: `row task${closed ? " closed" : ""}${waiting ? " waiting" : ""}${active ? " active" : ""}` });
   const label = el("div", { class: "label" }, el("span", { class: "task-title", title: tip }, title));
-  if (!closed && !waiting && !/^open$/i.test(t.status)) label.append(el("span", { class: "tag" }, t.status));
+  if (!closed && !waiting && !/^open$/i.test(t.status)) label.append(el("span", { class: `tag${active ? " active" : ""}` }, statusLabel(t.status)));
   label.append(el("span", { class: `task-due num${late ? " late" : ""}` }, fmt.weekday(due)));
   row.append(label);
   const track = el("div", { class: "track" });
