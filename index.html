@@ -25,6 +25,7 @@
     --checkin: #8A8494;
     --alert: #E24B4A;
     --tag-bg: #EEEBF3;
+    --done: #2E8540;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -39,6 +40,7 @@
       --bar-done: #4E4660;
       --checkin: #9C94AB;
       --tag-bg: #2B2439;
+      --done: #5BC27A;
     }
   }
 
@@ -265,7 +267,11 @@
   }
   .task-due { display: inline; flex: none; margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
   .task-due.late, .task-title .late { color: var(--alert); }
-  .row.task.closed .task-title { text-decoration: line-through; color: var(--muted); }
+  .row.task.closed .task-title, .row.task.closed .task-due { color: var(--muted); }
+  .check { flex: none; width: 14px; margin-right: -4px; color: var(--done); font-weight: 700; text-align: center; }
+  .row.task .label { padding-left: 20px; }
+  .kd-list .check { width: auto; margin: 0 0 0 8px; }
+  .phase-name .check { display: inline-block; width: auto; margin: 0 0 0 8px; }
   .row.task.closed .tag { opacity: 0.7; }
   .tag.active { background: var(--band); color: var(--ink); font-weight: 600; }
   .phase-name .tag { margin-left: 10px; vertical-align: 2px; }
@@ -324,13 +330,6 @@
     <div>
       <h1>Patient Voices Library</h1>
       <p class="sub">Project timeline for Discovery Lives in Us. Last updated: <span id="updated">Friday, September 25, 2026</span>.</p>
-    </div>
-    <div class="controls">
-      <div class="seg" role="group" aria-label="Timeline view">
-        <button type="button" data-view="summary" aria-pressed="true">Summary</button>
-        <button type="button" data-view="full" aria-pressed="false">Full</button>
-      </div>
-      <p class="hint">Summary shows the work ahead. Full adds completed tasks.</p>
     </div>
   </header>
 
@@ -418,8 +417,14 @@ const RULES = {
     32: "Launch Patient Voices Library",
     113: "Admin tools, taxonomy, transcription and tagging; story-user accounts, directory and request-to-contact",
     106: "Improvements from 4Site QA: UX QA window 2: Directory, Request-to-Contact, Admin",
-    134: "GitHub support for the development team"
+    134: "GitHub support for the development team",
+    84: "Answer development team intake questions"
   },
+  // Phases tagged "In progress" from the start until every task in them is closed.
+  // Other phases get the tag only while a task is In Progress or in QA.
+  inProgressUntilDone: ["Development"],
+  // Phases with standing weekly time: never marked complete, no progress count.
+  ongoingPhases: ["Strategy"],
   // Words removed from every task label (vendor names the client does not need to see).
   stripFromTitles: [/\bengine9\b/gi],
   waitingSuffix: " \u2014 waiting for client"
@@ -450,8 +455,8 @@ const TASKS = [
   {"id": 73, "list": "Development", "title": "engine9 collaboration as needed", "status": "Closed", "start": null, "due": "2026-09-25"},
   {"id": 74, "list": "Development", "title": "engine9 collaboration as needed", "status": "Closed", "start": null, "due": "2026-09-17"},
   {"id": 90, "list": "Development", "title": "Setup Analytics", "status": "Open", "start": null, "due": "2026-10-09"},
-  {"id": 92, "list": "Development", "title": "Storyteller capture build: recording, upload, typed and audio-only, device matrix", "status": "In Progress", "start": null, "due": "2026-10-09"},
-  {"id": 93, "list": "Development", "title": "Infrastructure, staging, design system", "status": "Open", "start": null, "due": "2026-09-25"},
+  {"id": 92, "list": "Development", "title": "Storyteller capture build: recording, upload, typed and audio-only, device matrix", "status": "Closed", "start": null, "due": "2026-10-09"},
+  {"id": 93, "list": "Development", "title": "Infrastructure, staging, design system", "status": "Closed", "start": null, "due": "2026-09-25"},
   {"id": 113, "list": "Development", "title": "Admin tools, taxonomy, transcription and tagging; story-user accounts, the directory and request-to-contact. Columbus Day is the 12th", "status": "Open", "start": null, "due": "2026-10-23"},
   {"id": 31, "list": "Launch", "title": "Ownership and Handoff: Cloudflare and AWS", "status": "Open", "start": null, "due": "2026-11-02"},
   {"id": 32, "list": "Launch", "title": "Launch Patient Voices Library (confirm with PM first)", "status": "Open", "start": null, "due": "2026-11-03"},
@@ -698,6 +703,7 @@ function renderKeyDates(today) {
     li.append(el("span", { class: `glyph ${k.t}${k.done ? " done" : ""}`, title: labelFor(k.t) }));
     const name = el("span", {}, k.n);
     if (overdue) name.append(el("span", { class: "overdue" }, "(overdue)"));
+    if (k.done || (past && k.t === "checkin" && !k.tentative)) name.append(el("span", { class: "check", role: "img", "aria-label": "Complete" }, "\u2713"));
     li.append(name);
     li.append(date
       ? el("span", { class: "kd-date num" }, fmt.weekday(date), k.tentative ? el("span", { class: "tentative" }, " (proposed)") : null)
@@ -749,26 +755,34 @@ function renderChart(phases, today) {
   rows.append(lane);
 
   // Phases and tasks.
-  const summary = state.view === "summary";
+  const summary = false;                          // completed work stays on the page
   let shown = 0;
   for (const phase of phases) {
     const visible = summary ? phase.tasks.filter(t => !isClosed(t.status)) : phase.tasks;
     if (!visible.length) continue;
     shown++;
     const open = state.expanded.has(phase.name);
-    const done = phase.closed === phase.tasks.length;
+    const ongoing = RULES.ongoingPhases.includes(phase.name);
+    const done = !ongoing && phase.closed === phase.tasks.length;
     const btn = el("button", { type: "button", class: "phase-btn", "aria-expanded": String(open), "aria-controls": `tasks-${slug(phase.name)}` },
       el("span", { class: "chev", "aria-hidden": "true" }),
       el("span", { class: "phase-name" }, phase.name,
-        visible.some(t => !isClosed(t.status) && isActive(t.status)) ? el("span", { class: "tag active" }, "In progress") : null),
+        done ? el("span", { class: "check", role: "img", "aria-label": "Complete" }, "\u2713") : null,
+        ongoing ? el("span", { class: "tag active" }, "Ongoing") :
+        !done && (RULES.inProgressUntilDone.includes(phase.name) || visible.some(t => !isClosed(t.status) && isActive(t.status)))
+          ? el("span", { class: "tag active" }, "In progress") : null),
+      ongoing ? el("span", { "aria-hidden": "true" }) :
       el("span", { class: "progress", role: "img", "aria-label": `${phase.closed} of ${phase.tasks.length} tasks closed` },
         el("span", { style: `width:${phase.tasks.length ? (phase.closed / phase.tasks.length * 100) : 0}%` })),
-      el("span", { class: "count num" }, `${phase.closed}/${phase.tasks.length}`));
+      ongoing ? el("span", { "aria-hidden": "true" }) : el("span", { class: "count num" }, `${phase.closed}/${phase.tasks.length}`));
     btn.addEventListener("click", () => { open ? state.expanded.delete(phase.name) : state.expanded.add(phase.name); render(); });
     const phaseRow = el("div", { class: "row phase" }, el("div", { class: "label" }, btn));
     const track = el("div", { class: "track" });
     const starts = visible.map(t => parseDate(t.start || t.due)), ends = visible.map(t => parseDate(t.due));
-    const s = new Date(Math.min(...starts)), e = new Date(Math.max(...ends));
+    const s = new Date(Math.min(...starts));
+    // An ongoing phase runs through the last milestone (launch), not just its last listed task.
+    const lastMilestone = Math.max(...KEY_DATES.filter(k => k.t === "milestone").map(k => +parseDate(k.d) || 0));
+    const e = new Date(Math.max(...ends, ongoing ? lastMilestone : 0));
     const left = dayIndex(s, range.min), width = dayIndex(e, range.min) - left + 1;
     if (width <= 1) track.append(el("span", { class: `dot${done ? " closed" : ""}`, style: `left:${pct(range, s, 0.5)}` }));
     else track.append(el("div", { class: `span-bar${done ? " done" : ""}`, style: `left:${pct(range, s)};width:${(width / range.days * 100).toFixed(3)}%`, title: `${phase.name}: ${fmt.short(s)} to ${fmt.short(e)}` }));
@@ -795,7 +809,9 @@ function taskRow(t, range, today) {
   const title = t.title + (waiting ? RULES.waitingSuffix : "");
   const tip = `${title}\n${start ? fmt.short(start) + " to " : "Due "}${fmt.weekday(due)}${closed ? "\nClosed" : active ? "\n" + statusLabel(t.status) : ""}`;
   const row = el("div", { class: `row task${closed ? " closed" : ""}${waiting ? " waiting" : ""}${active ? " active" : ""}` });
-  const label = el("div", { class: "label" }, el("span", { class: "task-title", title: tip }, title));
+  const label = el("div", { class: "label" },
+    closed ? el("span", { class: "check", role: "img", "aria-label": "Complete" }, "\u2713") : el("span", { class: "check", "aria-hidden": "true" }),
+    el("span", { class: "task-title", title: tip }, title));
   if (!closed && !waiting && !/^open$/i.test(t.status)) label.append(el("span", { class: `tag${active ? " active" : ""}` }, statusLabel(t.status)));
   label.append(el("span", { class: `task-due num${late ? " late" : ""}` }, fmt.weekday(due)));
   row.append(label);
@@ -815,20 +831,11 @@ function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-"); }
 function render() {
   const today = todayLocal();
   const phases = buildPhases();
-  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === state.view)));
   $("#updated").textContent = fmt.long(parseDate(META.updated));
   renderKeyDates(today);
   renderChart(phases, today);
 }
 
-document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
-  state.view = b.dataset.view;
-  render();
-  // Keep the view in the URL so a link can open straight to Full. Sandboxed
-  // previews (origin null) refuse history writes, so this is best-effort.
-  try { history.replaceState(null, "", state.view === "full" ? "#full" : location.pathname + location.search); } catch (e) {}
-}));
-window.addEventListener("hashchange", () => { state.view = location.hash === "#full" ? "full" : "summary"; render(); });
 $("#expandAll").addEventListener("click", () => { buildPhases().forEach(p => state.expanded.add(p.name)); render(); });
 $("#collapseAll").addEventListener("click", () => { state.expanded.clear(); render(); });
 
