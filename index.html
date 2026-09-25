@@ -148,7 +148,8 @@
     list-style: none;
     margin: 0; padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+    grid-template-columns: 1fr;
+    max-width: 760px;
     gap: 0 48px;
   }
   .kd-list li {
@@ -162,6 +163,8 @@
   .kd-list li.past { color: var(--muted); }
   .kd-list li.past .glyph { opacity: 0.55; }
   .kd-list .kd-date { color: var(--muted); white-space: nowrap; }
+  .kd-list .tentative { font-style: italic; }
+  .glyph.checkin.tentative { background: transparent; box-shadow: inset 0 0 0 2px var(--checkin); }
   .kd-list .tbd, .overdue { color: var(--alert); }
   .overdue { margin-left: 6px; font-weight: 500; }
   .kd-empty { color: var(--muted); margin: 0; }
@@ -318,7 +321,7 @@
   <header class="head">
     <div>
       <h1>Patient Voices Library</h1>
-      <p class="sub">Project timeline for Discovery Lives in Us. Last updated: <span id="updated">Wednesday, September 16, 2026</span>.</p>
+      <p class="sub">Project timeline for Discovery Lives in Us. Last updated: <span id="updated">Friday, September 25, 2026</span>.</p>
     </div>
     <div class="controls">
       <div class="seg" role="group" aria-label="Timeline view">
@@ -371,7 +374,7 @@
    ============================================================ */
 
 const META = {
-  updated: "2026-09-16"
+  updated: "2026-09-25"
 };
 
 // Key dates are curated by hand.
@@ -382,14 +385,16 @@ const META = {
 //          schedule so the same item never shows twice. Without match, a task
 //          whose title equals n (ignoring case) is hidden.
 //   done: (optional) true once an approval has been given or a deliverable received
+//   tentative: (optional) true while a date is proposed but not yet booked
 const KEY_DATES = [
   { n: "Client kickoff meeting", d: "2026-09-17", t: "checkin", match: "Patient voices library client kickoff meeting" },
-  { n: "CRM details: MailChimp", d: "2026-09-17", t: "due" },
-  { n: "Check-in 1: UX review of The Storyteller", d: "2026-10-07", t: "checkin", match: "Check in meeting 1" },
+  { n: "CRM details: MailChimp", d: "2026-09-17", t: "due", done: true },
+  { n: "Schedule check-in meetings", d: "2026-09-22", t: "due" },
+  { n: "Check-in 1: UX review of The Storyteller", d: "2026-10-07", t: "checkin", match: "Check in meeting 1", tentative: true },
   { n: "DLIU QA: The Storyteller", d: "2026-10-08", t: "due" },
-  { n: "Check-in 2: Directory, Request-to-Contact, Admin", d: "2026-10-21", t: "checkin", match: "Check in meeting 2" },
+  { n: "Check-in 2: Directory, Request-to-Contact, Admin", d: "2026-10-21", t: "checkin", match: "Check in meeting 2", tentative: true },
   { n: "DLIU QA: Directory, Request-to-Contact, Admin", d: "2026-10-22", t: "due", match: "DLIU QA 2" },
-  { n: "Check-in 3: Training for end-to-end QA and UAT", d: "2026-10-28", t: "checkin", match: "Check in meeting 3" },
+  { n: "Check-in 3: Training for end-to-end QA and UAT", d: "2026-10-28", t: "checkin", match: "Check in meeting 3", tentative: true },
   { n: "DLIU end-to-end QA and UAT", d: "2026-10-29", t: "due" },
   { n: "Launch approval", d: "2026-11-02", t: "milestone", match: "Patient Voices Launch Approval" },
   { n: "Launch", d: "2026-11-03", t: "milestone", match: "Launch Patient Voices Library" }
@@ -419,10 +424,10 @@ const RULES = {
 const TASKS = [
   {"id": 17, "list": "Development", "title": "Patient Voices Library Github repo", "status": "Closed", "start": null, "due": "2026-09-03"},
   {"id": 29, "list": "Development", "title": "Internal Kickoff meeting", "status": "Closed", "start": null, "due": "2026-09-15"},
-  {"id": 33, "list": "Development", "title": "Patient voices library client kickoff meeting", "status": "Open", "start": null, "due": "2026-09-17"},
-  {"id": 37, "list": "Development", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-09-24"},
+  {"id": 33, "list": "Development", "title": "Patient voices library client kickoff meeting", "status": "Closed", "start": null, "due": "2026-09-17"},
+  {"id": 37, "list": "Development", "title": "engine9 weekly check in", "status": "Closed", "start": null, "due": "2026-09-24"},
   {"id": 38, "list": "Development", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-01"},
-  {"id": 39, "list": "Development", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-09-17"},
+  {"id": 39, "list": "Development", "title": "engine9 weekly check in", "status": "Closed", "start": null, "due": "2026-09-17"},
   {"id": 40, "list": "Development", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-08"},
   {"id": 41, "list": "Development", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-15"},
   {"id": 42, "list": "Development", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-22"},
@@ -436,8 +441,8 @@ const TASKS = [
   {"id": 70, "list": "Development", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-10-15"},
   {"id": 71, "list": "Development", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-10-08"},
   {"id": 72, "list": "Development", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-10-01"},
-  {"id": 73, "list": "Development", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-09-24"},
-  {"id": 74, "list": "Development", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-09-17"},
+  {"id": 73, "list": "Development", "title": "engine9 collaboration as needed", "status": "Closed", "start": null, "due": "2026-09-25"},
+  {"id": 74, "list": "Development", "title": "engine9 collaboration as needed", "status": "Closed", "start": null, "due": "2026-09-17"},
   {"id": 90, "list": "Development", "title": "Setup Analytics", "status": "Open", "start": null, "due": "2026-10-09"},
   {"id": 92, "list": "Development", "title": "Storyteller capture build: recording, upload, typed and audio-only, device matrix", "status": "Open", "start": null, "due": "2026-10-09"},
   {"id": 93, "list": "Development", "title": "Infrastructure, staging, design system", "status": "Open", "start": null, "due": "2026-09-25"},
@@ -445,19 +450,19 @@ const TASKS = [
   {"id": 31, "list": "Launch", "title": "Ownership and Handoff: Cloudflare and AWS", "status": "Open", "start": null, "due": "2026-11-02"},
   {"id": 32, "list": "Launch", "title": "Launch Patient Voices Library (confirm with PM first)", "status": "Open", "start": null, "due": "2026-11-03"},
   {"id": 87, "list": "Launch", "title": "Patient Voices Launch Approval", "status": "Open", "start": null, "due": "2026-11-02"},
-  {"id": 91, "list": "Launch", "title": "DLIU.org soft launch", "status": "Open", "start": null, "due": "2026-09-24"},
+  {"id": 91, "list": "Launch", "title": "DLIU.org soft launch", "status": "Closed", "start": null, "due": "2026-09-24"},
   {"id": 124, "list": "Launch", "title": "DLIU Post Launch Support, Strategy", "status": "Open", "start": null, "due": "2026-11-05"},
   {"id": 125, "list": "Launch", "title": "DLIU Post Launch Support, Strategy", "status": "Open", "start": null, "due": "2026-11-13"},
   {"id": 126, "list": "Launch", "title": "DLIU Post Launch Support, Dev", "status": "Open", "start": null, "due": "2026-11-13"},
   {"id": 127, "list": "Launch", "title": "DLIU Post Launch Support, Dev", "status": "Open", "start": null, "due": "2026-11-06"},
-  {"id": 1, "list": "Project Management", "title": "DLIU Project Setup", "status": "In Progress", "start": null, "due": "2026-09-16"},
+  {"id": 1, "list": "Project Management", "title": "DLIU Project Setup", "status": "Closed", "start": null, "due": "2026-09-16"},
   {"id": 2, "list": "Project Management", "title": "Budget and Invoicing", "status": "In Progress", "start": null, "due": "2026-10-01"},
-  {"id": 3, "list": "Project Management", "title": "Weekly project review", "status": "Open", "start": null, "due": "2026-09-18"},
-  {"id": 4, "list": "Project Management", "title": "Project timeline", "status": "Open", "start": null, "due": "2026-09-16"},
+  {"id": 3, "list": "Project Management", "title": "Weekly project review", "status": "Open", "start": null, "due": "2026-09-25"},
+  {"id": 4, "list": "Project Management", "title": "Project timeline", "status": "Open", "start": null, "due": null},
   {"id": 6, "list": "Project Management", "title": "Ongoing Review of Patient Voices progress", "status": "Closed", "start": null, "due": "2026-09-11"},
   {"id": 7, "list": "Project Management", "title": "Excited to kickoff the Patient Voices Library project!", "status": "Closed", "start": null, "due": "2026-09-03"},
   {"id": 9, "list": "Project Management", "title": "Internal Kickoff meeting", "status": "Closed", "start": null, "due": "2026-09-15"},
-  {"id": 10, "list": "Project Management", "title": "Create Intake questionnaire & share with client", "status": "In Progress", "start": null, "due": "2026-09-16"},
+  {"id": 10, "list": "Project Management", "title": "Create Intake questionnaire & share with client", "status": "Closed", "start": null, "due": "2026-09-16"},
   {"id": 12, "list": "Project Management", "title": "Project Close internal tasks", "status": "Open", "start": null, "due": null},
   {"id": 13, "list": "Project Management", "title": "Past project catalog", "status": "Open", "start": null, "due": null},
   {"id": 14, "list": "Project Management", "title": "Imagery from project completion", "status": "Open", "start": null, "due": null},
@@ -470,12 +475,12 @@ const TASKS = [
   {"id": 22, "list": "Project Management", "title": "Ongoing Review of project progress (post launch)", "status": "Open", "start": null, "due": "2026-11-12"},
   {"id": 23, "list": "Project Management", "title": "Ongoing Review of project progress", "status": "Open", "start": null, "due": "2026-10-22"},
   {"id": 24, "list": "Project Management", "title": "Ongoing Review of project progress", "status": "Open", "start": null, "due": "2026-10-01"},
-  {"id": 25, "list": "Project Management", "title": "Ongoing Review of project progress", "status": "Open", "start": null, "due": "2026-09-24"},
-  {"id": 26, "list": "Project Management", "title": "Ongoing Review of project progress", "status": "Open", "start": null, "due": "2026-09-17"},
-  {"id": 35, "list": "Project Management", "title": "Patient voices library client kickoff meeting", "status": "Open", "start": null, "due": "2026-09-17"},
-  {"id": 57, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-09-24"},
+  {"id": 25, "list": "Project Management", "title": "Ongoing Review of project progress", "status": "Closed", "start": null, "due": "2026-09-24"},
+  {"id": 26, "list": "Project Management", "title": "Ongoing Review of project progress", "status": "Closed", "start": null, "due": "2026-09-17"},
+  {"id": 35, "list": "Project Management", "title": "Patient voices library client kickoff meeting", "status": "Closed", "start": null, "due": "2026-09-17"},
+  {"id": 57, "list": "Project Management", "title": "engine9 weekly check in", "status": "Closed", "start": null, "due": "2026-09-24"},
   {"id": 58, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-01"},
-  {"id": 59, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-09-17"},
+  {"id": 59, "list": "Project Management", "title": "engine9 weekly check in", "status": "Closed", "start": null, "due": "2026-09-17"},
   {"id": 60, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-08"},
   {"id": 61, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-15"},
   {"id": 62, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-22"},
@@ -483,12 +488,12 @@ const TASKS = [
   {"id": 64, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-11-05"},
   {"id": 65, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-11-12"},
   {"id": 66, "list": "Project Management", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-11-19"},
-  {"id": 88, "list": "Project Management", "title": "CRM: MailChimp", "status": "Open", "start": null, "due": "2026-09-17"},
-  {"id": 89, "list": "Project Management", "title": "Refine intake questionnaire for patient voices", "status": "Open", "start": null, "due": "2026-09-16"},
+  {"id": 88, "list": "Project Management", "title": "CRM: MailChimp", "status": "Closed", "start": null, "due": "2026-09-17"},
+  {"id": 89, "list": "Project Management", "title": "Refine intake questionnaire for patient voices", "status": "Closed", "start": null, "due": "2026-09-16"},
   {"id": 94, "list": "QA", "title": "UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-10-09"},
-  {"id": 95, "list": "QA", "title": "4Site Strategy QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-10-05"},
-  {"id": 96, "list": "QA", "title": "4Site Dev QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-10-05"},
-  {"id": 97, "list": "QA", "title": "engine9 Improvements from 4Site QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-10-06"},
+  {"id": 95, "list": "QA", "title": "4Site Strategy QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-09-28"},
+  {"id": 96, "list": "QA", "title": "4Site Dev QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-09-28"},
+  {"id": 97, "list": "QA", "title": "engine9 Improvements from 4Site QA: UX QA window 1: The Storyteller", "status": "Open", "start": null, "due": "2026-09-29"},
   {"id": 98, "list": "QA", "title": "Check in meeting 1: UX Review: The Storyteller", "status": "Open", "start": null, "due": "2026-10-07"},
   {"id": 99, "list": "QA", "title": "Check in meeting 1: UX Review: The Storyteller", "status": "Open", "start": null, "due": "2026-10-07"},
   {"id": 100, "list": "QA", "title": "Check in meeting 1: UX Review: The Storyteller", "status": "Open", "start": null, "due": "2026-10-07"},
@@ -515,10 +520,10 @@ const TASKS = [
   {"id": 122, "list": "QA", "title": "Check in meeting 3: Training in prep for End to End QA and UAT", "status": "Open", "start": null, "due": "2026-10-28"},
   {"id": 123, "list": "QA", "title": "Check in meeting 3: Training in prep for End to End QA and UAT", "status": "Open", "start": null, "due": "2026-10-28"},
   {"id": 27, "list": "Strategy", "title": "Internal Kickoff meeting", "status": "Closed", "start": null, "due": "2026-09-15"},
-  {"id": 34, "list": "Strategy", "title": "Patient voices library client kickoff meeting", "status": "Open", "start": null, "due": "2026-09-17"},
-  {"id": 47, "list": "Strategy", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-09-24"},
+  {"id": 34, "list": "Strategy", "title": "Patient voices library client kickoff meeting", "status": "Closed", "start": null, "due": "2026-09-17"},
+  {"id": 47, "list": "Strategy", "title": "engine9 weekly check in", "status": "Closed", "start": null, "due": "2026-09-24"},
   {"id": 48, "list": "Strategy", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-01"},
-  {"id": 49, "list": "Strategy", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-09-17"},
+  {"id": 49, "list": "Strategy", "title": "engine9 weekly check in", "status": "Closed", "start": null, "due": "2026-09-17"},
   {"id": 50, "list": "Strategy", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-08"},
   {"id": 51, "list": "Strategy", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-15"},
   {"id": 52, "list": "Strategy", "title": "engine9 weekly check in", "status": "Open", "start": null, "due": "2026-10-22"},
@@ -532,8 +537,16 @@ const TASKS = [
   {"id": 80, "list": "Strategy", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-10-15"},
   {"id": 81, "list": "Strategy", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-10-08"},
   {"id": 82, "list": "Strategy", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-10-01"},
-  {"id": 83, "list": "Strategy", "title": "engine9 collaboration as needed", "status": "Open", "start": null, "due": "2026-09-24"},
-  {"id": 84, "list": "Strategy", "title": "engine9 collaboration: Reply to Leah's intake questions if applicable", "status": "Closed", "start": null, "due": "2026-09-17"}
+  {"id": 83, "list": "Strategy", "title": "engine9 collaboration as needed", "status": "Closed", "start": null, "due": "2026-09-24"},
+  {"id": 84, "list": "Strategy", "title": "engine9 collaboration: Reply to Leah's intake questions if applicable", "status": "Closed", "start": null, "due": "2026-09-17"},
+  {"id": 134, "list": "Development", "title": "Github support for engine9", "status": "Closed", "start": null, "due": "2026-09-22"},
+  {"id": 135, "list": "Development", "title": "Create DLIU Cloudflare account", "status": "Closed", "start": null, "due": "2026-09-23"},
+  {"id": 128, "list": "Project Management", "title": "DLIU kickoff follow ups", "status": "Closed", "start": null, "due": "2026-09-25"},
+  {"id": 129, "list": "Project Management", "title": "DLIU master conditions list", "status": "Closed", "start": null, "due": "2026-09-23"},
+  {"id": 130, "list": "Project Management", "title": "Schedule check in meetings", "status": "Open", "start": null, "due": "2026-09-22"},
+  {"id": 131, "list": "Project Management", "title": "Fonts", "status": "Closed", "start": null, "due": "2026-09-25"},
+  {"id": 132, "list": "Project Management", "title": "DLIU testing plan", "status": "Open", "start": null, "due": "2026-10-05"},
+  {"id": 133, "list": "Project Management", "title": "DLIU.org soft launch", "status": "Closed", "start": null, "due": "2026-09-24"}
 ];
 
 /* ============================================================
@@ -671,7 +684,7 @@ function renderKeyDates(today) {
     if (overdue) name.append(el("span", { class: "overdue" }, "(overdue)"));
     li.append(name);
     li.append(date
-      ? el("span", { class: "kd-date num" }, fmt.weekday(date))
+      ? el("span", { class: "kd-date num" }, fmt.weekday(date), k.tentative ? el("span", { class: "tentative" }, " (proposed)") : null)
       : el("span", { class: "kd-date tbd" }, "TBD"));
     list.append(li);
   }
@@ -710,9 +723,9 @@ function renderChart(phases, today) {
     const d = parseDate(k.d);
     if (!d) continue;
     laneTrack.append(el("span", {
-      class: `glyph ${k.t}${k.done ? " done" : ""}`,
+      class: `glyph ${k.t}${k.done ? " done" : ""}${k.tentative ? " tentative" : ""}`,
       style: `left:${pct(range, d, 0.5)}`,
-      title: `${k.n}\n${fmt.weekday(d)}`
+      title: `${k.n}\n${fmt.weekday(d)}${k.tentative ? " (proposed)" : ""}`
     }));
     if (k.t === "milestone") overlay.append(el("div", { class: "mline", style: `left:${pct(range, d, 0.5)}` }));
   }
